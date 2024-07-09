@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
         //checking if account exists
         boolean isAccountExists = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
 
+
         //if the account does not exist
         if (!isAccountExists) {
             return BankResponse.builder()
@@ -184,7 +185,7 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
 
-        UserEntity sourceAccountUser = userRepository.findByAccountNumber(transferRequest.getDestinationAccountNumber());
+        UserEntity sourceAccountUser = userRepository.findByAccountNumber(transferRequest.getSourceAccountNumber());
         //checks the account balance is greater then zero, read from right to left
         if(transferRequest.getAmount().compareTo(sourceAccountUser.getAccountBalance())> 0){
             return BankResponse.builder()

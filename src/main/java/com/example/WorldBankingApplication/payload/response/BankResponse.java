@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 // Do not use @AllArgs here, it will cause problems
-public class BankResponse {
+public class BankResponse <T> {
 
     private String responseCode;
 
@@ -26,5 +26,9 @@ public class BankResponse {
         this.responseCode = responseCode;
         this.responseMessage = responseMessage;
         this.accountInfo = accountInfo;
+    }
+
+    public BankResponse(String message, String fileUrl) {
+        this.responseMessage= message;
     }
 }

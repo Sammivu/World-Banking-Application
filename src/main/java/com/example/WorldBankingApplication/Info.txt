@@ -1,0 +1,8 @@
+The World Banking Application is a General Base Banking prototype.
+
+Steps and levels to the Banking App
+
+1. The functionalities were created first without the use of spring Security for easy understanding
+2. The Banking app should be able to register, login, deposit money, withdraw money, internal transfer, and logout
+3. As of now the app can do all except logout.
+4. Security have not been implemented and that will be the final stage work
