@@ -184,7 +184,7 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
 
-        UserEntity sourceAccountUser = userRepository.findByAccountNumber(transferRequest.getDestinationAccountNumber());
+        UserEntity sourceAccountUser = userRepository.findByAccountNumber(transferRequest.getSourceAccountNumber());
         //checks the account balance is greater then zero, read from right to left
         if(transferRequest.getAmount().compareTo(sourceAccountUser.getAccountBalance())> 0){
             return BankResponse.builder()
