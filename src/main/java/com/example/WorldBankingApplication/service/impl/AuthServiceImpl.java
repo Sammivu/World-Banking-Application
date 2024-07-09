@@ -89,6 +89,7 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<ApiResponse<JwtAuthResponse>> loginUser(LoginRequest loginRequest) {
         Optional<UserEntity> userEntityOptional= userRepository.findByEmail(loginRequest.getEmail());
 
+
         //This prompts the user everytime there is a login
         EmailDetails loginAlert = EmailDetails.builder()
                 .subject("Your are logged in")

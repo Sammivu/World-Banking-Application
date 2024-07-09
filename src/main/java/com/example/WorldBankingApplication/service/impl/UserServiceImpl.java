@@ -4,12 +4,14 @@ import com.example.WorldBankingApplication.domain.entity.UserEntity;
 import com.example.WorldBankingApplication.payload.request.CreditAndDebitRequest;
 import com.example.WorldBankingApplication.payload.request.EmailDetails;
 import com.example.WorldBankingApplication.payload.request.EnquiryRequest;
+import com.example.WorldBankingApplication.payload.request.TransferRequest;
 import com.example.WorldBankingApplication.payload.response.AccountInfo;
 import com.example.WorldBankingApplication.payload.response.BankResponse;
 import com.example.WorldBankingApplication.repository.UserRepository;
 import com.example.WorldBankingApplication.service.EmailService;
 import com.example.WorldBankingApplication.service.UserService;
 import com.example.WorldBankingApplication.utils.AccountUtils;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -160,5 +162,78 @@ public class UserServiceImpl implements UserService {
 
 
         }
+    }
+
+    @Override
+    public BankResponse transfer(TransferRequest transferRequest) {
+
+        /*
+         1. FIRST CHECK IF THE DESTINATION ACCOUNT NUMBER EXISTS
+         2. THEN CHECK IF AMOUNT TO SEND IS AVAILABLE
+         3. THEN DEDUCT THE AMOUNT TO SEND FROM SENDER BALANCE
+         4. THEN ADD THE SENT AMOUNT TO THE RECIEVER BALANCE
+         5. THEN SEND A DEBIT ALERT AND A CREDIT ALERT TO BOTH
+           */
+
+        boolean isDestinationAccountExists= userRepository.existsByAccountNumber(transferRequest.getDestinationAccountNumber());
+
+        if(!isDestinationAccountExists){
+            return BankResponse.builder()
+                    .responseCode("008")
+                    .responseMessage("Account number does not exists")
+                    .build();
+        }
+
+        UserEntity sourceAccountUser = userRepository.findByAccountNumber(transferRequest.getDestinationAccountNumber());
+        //checks the account balance is greater then zero, read from right to left
+        if(transferRequest.getAmount().compareTo(sourceAccountUser.getAccountBalance())> 0){
+            return BankResponse.builder()
+                    .responseCode("009")
+                    .responseMessage("INSUFFICIENT BALANCE")
+                    .accountInfo(null)
+                    .build();
+        }
+
+        //debiting the account
+        sourceAccountUser.setAccountBalance(sourceAccountUser.getAccountBalance().subtract(transferRequest.getAmount()));
+
+        userRepository.save(sourceAccountUser);
+        String sourceUsername = sourceAccountUser.getFirstName()+" "
+                +sourceAccountUser.getOtherName()+" "+sourceAccountUser.getLastName();
+
+
+        //Sending Alert
+        EmailDetails debitAlert = EmailDetails.builder()
+                .subject("DEBIT ALERT")
+                .recipient(sourceAccountUser.getEmail())
+                .messageBody("The Sum of "
+                        + transferRequest.getAmount()
+                        +" has been debited from your account. Your current balance is"
+                        +sourceAccountUser.getAccountBalance())
+                .build();
+        emailService.sendEmailAlert(debitAlert); //send alert
+
+        // to credit the destination Account number
+        UserEntity destinationAccountUser = userRepository.findByAccountNumber(transferRequest.getDestinationAccountNumber());
+        destinationAccountUser.setAccountBalance(destinationAccountUser.getAccountBalance().add(transferRequest.getAmount()));
+
+        userRepository.save(destinationAccountUser);
+
+        //Sending Credit alert
+        EmailDetails creditAlert = EmailDetails.builder()
+                .subject("CREDIT ALERT")
+                .recipient(destinationAccountUser.getEmail())
+                .messageBody("Your account has been credited with "+ transferRequest.getAmount()+ " from "+ sourceUsername
+                    +"your current account balance iis "+destinationAccountUser.getAccountBalance())
+                .build();
+
+        emailService.sendEmailAlert(creditAlert);
+
+
+        return BankResponse.builder()
+                .responseCode("200")
+                .responseMessage("TRANSFER SUCCESSFUL")
+                .accountInfo(null)
+                .build();
     }
 }

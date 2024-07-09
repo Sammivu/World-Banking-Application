@@ -26,6 +26,9 @@ public class AccountUtils {
     public static final String ACCOUNT_DEBITED_SUCCESS_CODE= "007";
     public static final String ACCOUNT_DEBITED_SUCCESS_MESSAGE= "Account debited successfully";
 
+    public static  final String EMAIL_NON_EXISTS_CODE = "008";
+    public static final String EMAIL_NON_EXISTS_MESSAGE = "The provided email does not exist";
+
 
 
     public static String generateAccountNumber(){

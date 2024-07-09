@@ -1,6 +1,7 @@
 package com.example.WorldBankingApplication.payload.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -23,6 +24,9 @@ public class UserRequest {
 
     private String email;
 
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
+    @NotBlank(message = "Password is mandatory")
     private String password;
 
     private String address;
@@ -31,6 +35,8 @@ public class UserRequest {
 
     private String BVN;
 
+    @NotBlank(message = "Phone number can not be blank")
+    @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Phone number is invalid")
     private  String phoneNumber;
 
     private String pin;
