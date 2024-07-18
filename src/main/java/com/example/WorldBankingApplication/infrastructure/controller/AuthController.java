@@ -6,6 +6,7 @@ import com.example.WorldBankingApplication.payload.response.ApiResponse;
 import com.example.WorldBankingApplication.payload.response.BankResponse;
 import com.example.WorldBankingApplication.payload.response.JwtAuthResponse;
 import com.example.WorldBankingApplication.service.AuthService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register-user")
-    public BankResponse createUserAccount(@Valid @RequestBody UserRequest userRequest){
+    public BankResponse createUserAccount(@Valid @RequestBody UserRequest userRequest) throws MessagingException {
 
         return  authService.registerUser(userRequest);
     }

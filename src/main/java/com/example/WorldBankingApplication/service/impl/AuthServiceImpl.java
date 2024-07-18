@@ -98,9 +98,9 @@ public class AuthServiceImpl implements AuthService {
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(savedUser.getEmail())
                 .subject("ACCOUNT CREATION")
-                .messageBody("Congratulation!! Your account have been created Successfully.\nYour Account Details: \n"+
-                        "Account Name : "+ savedUser.getFirstName()+ " "+ savedUser.getLastName()+" "+savedUser.getOtherName()+
-                        "\nAccount Number : "+savedUser.getAccountNumber())
+//                .messageBody("Congratulation!! Your account have been created Successfully.\nYour Account Details: \n"+
+//                        "Account Name : "+ savedUser.getFirstName()+ " "+ savedUser.getLastName()+" "+savedUser.getOtherName()+
+//                        "\nAccount Number : "+savedUser.getAccountNumber())
                 .build();
         emailService.sendSimpleMailMessage (emailDetails, savedUser.getFirstName(), savedUser.getLastName(), confirmationUrl);
 
