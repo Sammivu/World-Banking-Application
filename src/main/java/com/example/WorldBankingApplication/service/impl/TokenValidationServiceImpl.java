@@ -20,7 +20,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
     private final UserRepository userRepository;
 
     @Override
-    public String validateToke(String token) {
+    public String validateToken(String token) {
 
         Optional<ConfirmationToken> confirmationTokenOptional = confirmationTokenRepository.findByToken(token);
         if (confirmationTokenOptional.isEmpty()) {

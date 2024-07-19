@@ -34,11 +34,12 @@ public class SecurityConfig {
         // This permits any and all request that carries this pattern/url
         security.csrf(CsrfConfigurer::disable)
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(antMatcher(HttpMethod.POST, "api/v1/auth/**"),
-                                antMatcher(HttpMethod.GET, "api/v1/**"))
+                        .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/auth/**"),
+                                antMatcher(HttpMethod.GET, "api/auth/confirm")
+                                        )
                         .permitAll()
                         .anyRequest()
-                        .permitAll()
+                        .authenticated()
                 )
                 .exceptionHandling(exception-> exception.authenticationEntryPoint(authenticationEntrypoint))
 

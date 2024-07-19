@@ -75,12 +75,17 @@
 
     <!-- Content -->
     <div class="content">
-        <p>Hello <th:block th:text="${name},"></th:block></p>
+        <p>Hello <th:block th:text="${name}"></th:block></p>
         <p> </p>
         <p>Congratulations on creating an account with <strong>World Banking App</strong>.</p>
+<!--        <p>Your account number is: <span th:text="${accountNumber}"></span></p>-->
+
         <p>Click the button below to verify your email address </p>
         <a th:href="${link}" class="btn">Verify Email</a>
         <p>If you did not create an account, please ignore this email.</p>
+
+
+
     </div>
 
     <!-- Footer -->
