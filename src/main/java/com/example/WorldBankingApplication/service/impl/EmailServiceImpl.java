@@ -48,7 +48,6 @@ public class EmailServiceImpl implements EmailService {
         }
 
     }
-
     //This sends a message using thymeleaf template
     @Override
     public void sendSimpleMailMessage(EmailDetails message, String firstName, String lastName, String link) throws MessagingException {
@@ -70,4 +69,24 @@ public class EmailServiceImpl implements EmailService {
         log.info("Sending email: to {}",message.getRecipient());
     }
 
+    public void sendForgotPasswordEmail(EmailDetails emailDetails, String firstName, String lastName, String link) throws MessagingException {
+
+        MimeMessage msg = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(msg, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+        Context context = new Context();
+        Map<String, Object> variables = Map.of(
+                "name", firstName + " " + lastName,
+                "link", link
+        );
+        context.setVariables(variables);
+        helper.setFrom(senderEmail);
+        helper.setTo(emailDetails.getRecipient());
+        helper.setSubject(emailDetails.getSubject());
+        String html = springTemplateEngine.process("forgot-password", context);
+        helper.setText(html, true);
+
+        javaMailSender.send(msg);
+        log.info("Sending email: to {}",emailDetails.getRecipient());
+
+    }
 }

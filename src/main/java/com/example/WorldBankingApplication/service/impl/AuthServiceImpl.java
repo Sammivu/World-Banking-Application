@@ -1,18 +1,20 @@
 package com.example.WorldBankingApplication.service.impl;
 
 import com.example.WorldBankingApplication.domain.entity.ConfirmationToken;
+import com.example.WorldBankingApplication.domain.entity.JToken;
 import com.example.WorldBankingApplication.domain.entity.UserEntity;
 import com.example.WorldBankingApplication.domain.enums.Role;
+import com.example.WorldBankingApplication.domain.enums.TokenType;
+import com.example.WorldBankingApplication.exception.NotFoundException;
 import com.example.WorldBankingApplication.exception.UserNotEnabledException;
 import com.example.WorldBankingApplication.infrastructure.config.JwtService;
-import com.example.WorldBankingApplication.payload.request.EmailDetails;
-import com.example.WorldBankingApplication.payload.request.LoginRequest;
-import com.example.WorldBankingApplication.payload.request.UserRequest;
+import com.example.WorldBankingApplication.payload.request.*;
 import com.example.WorldBankingApplication.payload.response.AccountInfo;
 import com.example.WorldBankingApplication.payload.response.ApiResponse;
 import com.example.WorldBankingApplication.payload.response.BankResponse;
 import com.example.WorldBankingApplication.payload.response.JwtAuthResponse;
 import com.example.WorldBankingApplication.repository.ConfirmationTokenRepository;
+import com.example.WorldBankingApplication.repository.JTokenRepository;
 import com.example.WorldBankingApplication.repository.UserRepository;
 import com.example.WorldBankingApplication.service.AuthService;
 import com.example.WorldBankingApplication.service.EmailService;
@@ -45,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     //To encode the password
     private final PasswordEncoder passwordEncoder;
+    private final JTokenRepository jTokenRepository;
 
     @Value("${baseUrl}")
     private String baseUrl;
@@ -136,11 +139,13 @@ public class AuthServiceImpl implements AuthService {
             throw new UserNotEnabledException("User Account not enabled, Please check you email to confirm your account");
         }
 
-
+        var jwtToken = jwtService.generateToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, jwtToken);
 
         //This prompts the user everytime there is a login
         EmailDetails loginAlert = EmailDetails.builder()
-                .subject("Your are logged in")
+                .subject("LOGIN SUCCESS")
                 .recipient(loginRequest.getEmail())
                 .messageBody("You Logged into your account. If you did not initiate this, contact support desk...")
                 .build();
@@ -153,7 +158,7 @@ public class AuthServiceImpl implements AuthService {
                         new ApiResponse<>(
                                 "Login Successfully",
                                 JwtAuthResponse.builder()
-                                        .accessToken(jwtService.generateToken(user))
+                                        .accessToken(jwtToken)
                                         .tokenType("Bearer")
                                         .id(user.getId())
                                         .email(user.getEmail())
@@ -166,4 +171,70 @@ public class AuthServiceImpl implements AuthService {
                 );
 
     }
+    private void saveUserToken(UserEntity userEntity, String jwtToken) {
+        var token = JToken.builder()
+                .userEntity(userEntity)
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .build();
+        jTokenRepository.save(token);
+    }
+
+    private void revokeAllUserTokens(UserEntity userEntity) {
+        var validUserTokens = jTokenRepository.findAllValidTokenByUser(userEntity.getId());
+        if (validUserTokens.isEmpty())
+            return;
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+        jTokenRepository.saveAll(validUserTokens);
+    }
+
+    public String forgotPasswordRequest(PasswordResetRequest passwordResetRequest) throws MessagingException{
+        Optional<UserEntity> userOptional = userRepository.findByEmail(passwordResetRequest.getEmail());
+
+        if (userOptional.isEmpty()) {
+            throw new NotFoundException("User with email: " + passwordResetRequest.getEmail()+ " not found.");
+        }
+
+        UserEntity userEntity = userOptional.get();
+        ConfirmationToken confirmationToken = new ConfirmationToken(userEntity);
+        confirmationTokenRepository.save(confirmationToken);
+
+        String resetUrl = EmailTemplate.getResetPasswordUrl(baseUrl, confirmationToken.getToken());
+
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(userEntity.getEmail())
+                .subject("PASSWORD RESET: WORLD BANKING")
+                .build();
+        emailService.sendForgotPasswordEmail(emailDetails, userEntity.getFirstName(), userEntity.getFirstName(),resetUrl);
+
+        return "Password reset email sent";
+    }
+
+    @Override
+    public String confirmResetPassword(String token, PasswordResetConfirmationRequest passwordResetConfirmationRequest) {
+        Optional<ConfirmationToken> tokenOptional = confirmationTokenRepository.findByToken(token);
+
+        if (tokenOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        if(!passwordResetConfirmationRequest.getNewPassword().equals(passwordResetConfirmationRequest.getConfirmPassword())) {
+            throw new IllegalArgumentException("New passwords do not match");
+        }
+
+        ConfirmationToken confirmationToken = tokenOptional.get();
+        UserEntity userEntity = confirmationToken.getUserEntity();
+        userEntity.setPassword(passwordEncoder.encode(passwordResetConfirmationRequest.getConfirmPassword()));
+        userRepository.save(userEntity);
+
+        confirmationTokenRepository.delete(confirmationToken);
+
+        return "Password reset successfully";
+    }
+
 }

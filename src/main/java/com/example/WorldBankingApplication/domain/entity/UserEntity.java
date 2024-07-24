@@ -1,9 +1,7 @@
 package com.example.WorldBankingApplication.domain.entity;
 
 import com.example.WorldBankingApplication.domain.enums.Role;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name ="users_tbl")
@@ -57,9 +56,13 @@ public class UserEntity extends BaseClass implements UserDetails {
     private Role role;
 
     private boolean enabled = false;
+//previous
+//    @OneToMany(mappedBy = "userModel")
+//    private List<JToken> jTokens;
 
-    @OneToMany(mappedBy = "userModel")
-    private List<JToken> jTokens;
+    //after
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<JToken> jTokens;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

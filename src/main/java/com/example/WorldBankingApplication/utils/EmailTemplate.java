@@ -14,4 +14,8 @@ public class EmailTemplate {
     public static String getVerificationUrl(String baseurl, String token){
         return baseurl + "/api/auth/confirm?token=" + token ;
     }
+
+    public static String getResetPasswordUrl(String baseurl, String token){
+        return baseurl + "/api/auth/confirm-forgot-password?token="+token;
+    }
 }

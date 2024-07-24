@@ -12,8 +12,12 @@ import org.springframework.security.config.annotation.web.configurers.CsrfConfig
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import static org.springframework.security.config.http.MatcherType.ant;
+import java.util.Arrays;
+
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Configuration
@@ -35,7 +39,9 @@ public class SecurityConfig {
         security.csrf(CsrfConfigurer::disable)
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/auth/**"),
-                                antMatcher(HttpMethod.GET, "api/auth/confirm")
+                                antMatcher(HttpMethod.GET, "/api/auth/confirm"),
+                                antMatcher(HttpMethod.GET, "/api/auth/confirm-forgot-password")
+
                                         )
                         .permitAll()
                         .anyRequest()
@@ -49,6 +55,21 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults());
         security.authenticationProvider(authenticationProvider);
 
+       // security.cors(customizer -> customizer.configurationSource(corsConfigurationSource()));
+
         return security.build();
     }
+
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(Arrays.asList("*")); // Set your allowed origins here
+//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE")); // Set your allowed HTTP methods
+//        configuration.setAllowedHeaders(Arrays.asList("*")); // Set your allowed headers (e.g., Content-Type, Authorization)
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration); // Apply CORS configuration to all paths
+//
+//        return source;
+//    }
 }

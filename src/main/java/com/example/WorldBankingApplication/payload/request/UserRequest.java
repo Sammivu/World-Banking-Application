@@ -23,6 +23,7 @@ public class UserRequest {
 
     private  String otherName;
 
+    @NotBlank(message = "Gender is required")
     private String gender;
 
     @Pattern(regexp = "^(.+)@(.+)$", message = "Email is invalid")
@@ -31,17 +32,20 @@ public class UserRequest {
 
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
             message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
-    @NotBlank(message = "Password is mandatory")
+    @NotBlank(message = "Password is required")
     private String password;
 
     @Transient
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
 
+    @NotBlank(message = "Address is required")
     private String address;
 
+    @NotBlank(message = "State of origin is required")
     private String stateOfOrigin;
 
+    @NotBlank(message = "BVN is required")
     private String BVN;
 
     @NotBlank(message = "Phone number can not be blank")
