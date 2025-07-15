@@ -16,6 +16,6 @@ public class EmailTemplate {
     }
 
     public static String getResetPasswordUrl(String baseurl, String token){
-        return baseurl + "/api/auth/confirm-forgot-password?token="+token;
+        return baseurl + "/api/v1/auth/confirm-forgot-password?token=" + token ;
     }
 }

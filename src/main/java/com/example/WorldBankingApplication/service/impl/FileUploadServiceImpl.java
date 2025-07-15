@@ -13,7 +13,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 
 
-//This class implements the fileuploadservice and passes the cloudinary class
+//This class implements the file upload service and passes the cloudinary class
 public class FileUploadServiceImpl implements FileUploadService {
 
     private final Cloudinary cloudinary;

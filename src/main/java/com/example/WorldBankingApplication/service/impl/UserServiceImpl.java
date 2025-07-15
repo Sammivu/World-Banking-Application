@@ -1,6 +1,7 @@
 package com.example.WorldBankingApplication.service.impl;
 
 import com.example.WorldBankingApplication.domain.entity.UserEntity;
+import com.example.WorldBankingApplication.exception.NotFoundException;
 import com.example.WorldBankingApplication.payload.request.CreditAndDebitRequest;
 import com.example.WorldBankingApplication.payload.request.EmailDetails;
 import com.example.WorldBankingApplication.payload.request.EnquiryRequest;
@@ -8,6 +9,7 @@ import com.example.WorldBankingApplication.payload.request.TransferRequest;
 import com.example.WorldBankingApplication.payload.response.AccountInfo;
 import com.example.WorldBankingApplication.payload.response.BankResponse;
 import com.example.WorldBankingApplication.repository.UserRepository;
+import com.example.WorldBankingApplication.service.AuthService;
 import com.example.WorldBankingApplication.service.EmailService;
 import com.example.WorldBankingApplication.service.UserService;
 import com.example.WorldBankingApplication.utils.AccountUtils;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.Optional;
 
 import static com.example.WorldBankingApplication.utils.AccountUtils.*;
 
@@ -25,12 +28,12 @@ public class UserServiceImpl implements UserService {
 
     public final UserRepository userRepository;
     private final EmailService emailService;
+    private final AuthService authService;
 
     @Override
     public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
         //checking if account exists
         boolean isAccountExists = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
-
 
         //if the account does not exist
         if (!isAccountExists) {
@@ -53,7 +56,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-
     @Override
     public String nameEnquiry(EnquiryRequest enquiryRequest) {
 
@@ -71,7 +73,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public BankResponse creditAccount(CreditAndDebitRequest creditAndDebitRequest) {
+    public BankResponse creditAccount(CreditAndDebitRequest creditAndDebitRequest, String email) {
+
+       Optional<UserEntity> optionalUserEntity = userRepository.findByEmail(email);
+       if (!optionalUserEntity.isPresent()){
+           throw new NotFoundException("User not found");
+       }
         //checking if the account exist
         boolean isAccountExists = userRepository.existsByAccountNumber(creditAndDebitRequest.getAccountNumber());
 
@@ -86,8 +93,9 @@ public class UserServiceImpl implements UserService {
         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(creditAndDebitRequest.getAmount()));
         //  userToCredit.setFirstName(creditAndDebitRequest.getFirstName());
         //  userToCredit.setLastName(creditAndDebitRequest.getLastName());
+        userToCredit.getFirstName();
+        userToCredit.getLastName();
         userRepository.save(userToCredit);
-
 
         //send email alert
         EmailDetails creditAlert = EmailDetails.builder()
@@ -110,9 +118,13 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-
     @Override
-    public BankResponse debitAccount(CreditAndDebitRequest creditAndDebitRequest) {
+    public BankResponse debitAccount(CreditAndDebitRequest creditAndDebitRequest, String email) {
+
+        Optional<UserEntity> optionalUserEntity = userRepository.findByEmail(email);
+        if (!optionalUserEntity.isPresent()){
+            throw new NotFoundException("User not found");
+        }
 
         boolean isAccountExists = userRepository.existsByAccountNumber(creditAndDebitRequest.getAccountNumber());
         if (!isAccountExists) {
@@ -140,7 +152,6 @@ public class UserServiceImpl implements UserService {
 
             userRepository.save(userToDebit);
 
-
             //Debit alert here
             EmailDetails debitAlert = EmailDetails.builder()
                     .subject("DEBIT ALERT")
@@ -149,7 +160,6 @@ public class UserServiceImpl implements UserService {
                             "Your account balance is " + userToDebit.getAccountBalance())
                     .build();
             emailService.sendEmailAlert(debitAlert);
-
 
             return BankResponse.builder()
                     .responseCode(AccountUtils.ACCOUNT_DEBITED_SUCCESS_CODE)
@@ -160,14 +170,11 @@ public class UserServiceImpl implements UserService {
                             .accountNumber(userToDebit.getAccountNumber())
                             .build())
                     .build();
-
-
         }
     }
 
     @Override
-    public BankResponse transfer(TransferRequest transferRequest) {
-
+    public BankResponse transfer(TransferRequest transferRequest, String email) {
         /*
          1. FIRST CHECK IF THE DESTINATION ACCOUNT NUMBER EXISTS
          2. THEN CHECK IF AMOUNT TO SEND IS AVAILABLE
@@ -175,6 +182,10 @@ public class UserServiceImpl implements UserService {
          4. THEN ADD THE SENT AMOUNT TO THE RECIEVER BALANCE
          5. THEN SEND A DEBIT ALERT AND A CREDIT ALERT TO BOTH
            */
+        Optional<UserEntity> optionalUserEntity = userRepository.findByEmail(email);
+        if (!optionalUserEntity.isPresent()){
+            throw new NotFoundException("User not found");
+        }
 
         boolean isDestinationAccountExists= userRepository.existsByAccountNumber(transferRequest.getDestinationAccountNumber());
 

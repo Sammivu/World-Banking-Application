@@ -210,7 +210,7 @@ public class AuthServiceImpl implements AuthService {
                 .recipient(userEntity.getEmail())
                 .subject("PASSWORD RESET: WORLD BANKING")
                 .build();
-        emailService.sendForgotPasswordEmail(emailDetails, userEntity.getFirstName(), userEntity.getFirstName(),resetUrl);
+        emailService.sendForgotPasswordEmail(emailDetails, userEntity.getFirstName(), userEntity.getLastName(),resetUrl);
 
         return "Password reset email sent";
     }

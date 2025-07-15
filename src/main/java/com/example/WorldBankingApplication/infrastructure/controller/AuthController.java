@@ -40,12 +40,14 @@ public class AuthController {
     //Do this after the email message
     @GetMapping("/confirm-forgot-password")
     public ResponseEntity<?> confirmForgotPassword(@RequestParam("token") String token){
+        System.out.println( "Here we go");
         return ResponseEntity.ok("Token confirmed");
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> confirmPasswordReset(@RequestParam("token") String token, @Valid @RequestBody PasswordResetConfirmationRequest resetConfirmationRequest){
 
+        System.out.println("This is another one here");
         return ResponseEntity.ok(authService.confirmResetPassword(token,resetConfirmationRequest));
     }
 }

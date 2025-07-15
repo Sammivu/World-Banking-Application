@@ -4,9 +4,17 @@ import com.example.WorldBankingApplication.payload.request.CreditAndDebitRequest
 import com.example.WorldBankingApplication.payload.request.EnquiryRequest;
 import com.example.WorldBankingApplication.payload.request.TransferRequest;
 import com.example.WorldBankingApplication.payload.response.BankResponse;
+import com.example.WorldBankingApplication.service.AuthService;
 import com.example.WorldBankingApplication.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Random;
 
 @RequiredArgsConstructor
 @RestController
@@ -14,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @GetMapping("/balance-enquiry")
     public BankResponse balanceEnquiry(@RequestBody EnquiryRequest enquiryRequest){
@@ -26,19 +35,26 @@ public class UserController {
     }
 
     @PostMapping("/credit-account")
-    public BankResponse creditAccount(@RequestBody CreditAndDebitRequest creditAndDebitRequest){
+    public ResponseEntity<BankResponse> creditAccount(@RequestBody CreditAndDebitRequest creditAndDebitRequest){
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-        return userService.creditAccount(creditAndDebitRequest);
+        return ResponseEntity.ok(userService.creditAccount(creditAndDebitRequest, email));
     }
 
     @PostMapping("/debit-account")
-    public BankResponse debitAccount(@RequestBody CreditAndDebitRequest creditAndDebitRequest){
-        return userService.debitAccount(creditAndDebitRequest);
+    public ResponseEntity<BankResponse> debitAccount(@RequestBody CreditAndDebitRequest creditAndDebitRequest){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        return ResponseEntity.ok(userService.debitAccount(creditAndDebitRequest, email));
     }
 
     @PostMapping("/transfer")
-    public BankResponse transfer(@RequestBody TransferRequest transferRequest){
+    public ResponseEntity<BankResponse> transfer(@RequestBody TransferRequest transferRequest){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-        return userService.transfer(transferRequest);
+        return ResponseEntity.ok(userService.transfer(transferRequest, email));
     }
 }
